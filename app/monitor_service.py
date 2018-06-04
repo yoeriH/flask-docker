@@ -1,36 +1,57 @@
 import datetime
 
 class MonitorService():
-
     def __init__(self):
-        self.__apps = []
+        self.__monitors = []
 
     def create(self, name):
-        app = {'name': name, 'id': self.__next_id() , 'status':[]}
-        self.__apps.append(app)
-        return app
+        monitor = Monitor(name, self.__next_id(), 1)
+        self.__monitors.append(monitor)
+        return monitor.to_object()
 
     def find(self, id):
-        return self.__find(id)
+        return self.__find(id).to_object()
 
     def all(self):
-        return self.__apps
+        results = []
+        for monitor in self.__monitors:
+            results.append(monitor.to_object())
+        return results
 
     def update(self, id, status):
         id = int(id)
-        status_object = {'status': status, 'created_at':self.__current_time()}
-        self.__apps[id]['status'].append(status_object)
-        return self.__find(id)
+        status_object = {'status': status, 'created_at': datetime.datetime.now()}
+        self.__monitors[id].add_status(status_object)
+        return self.__find(id).to_object()
 
     def remove(self, id):
-        self.__apps.pop(id)
-
+        self.__monitors.pop(id)
 
     def __find(self, id):
-        return self.__apps[id]
-
-    def __current_time(self):
-        return  str(datetime.datetime.now())
+        return self.__monitors[id]
 
     def __next_id(self):
-        return  len(self.__apps)
+        return  len(self.__monitors)
+
+class Monitor():
+    def __init__(self, name, id, priority):
+        self.name = name
+        self.id = id
+        self.priority = priority
+        self.__stati = []
+
+    def report(self):
+        if len(self.__stati) > 1:
+            time_passed = datetime.datetime.now() - self.__stati[-2]['created_at']
+            health = 100 - time_passed.seconds * self.priority
+            print(time_passed.seconds)
+            return {'health': health}
+        else:
+            return {'health': False, 'message': 'no status recieved'}
+
+
+    def add_status(self, status):
+        self.__stati.append(status)
+
+    def to_object(self):
+        return {'id': self.id, 'name': self.name, 'priority': self.priority, 'status': self.report()}
