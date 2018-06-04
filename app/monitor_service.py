@@ -48,8 +48,7 @@ class Monitor():
     def report(self):
         if len(self.__stati) > 1:
             time_passed = datetime.datetime.now() - self.__stati[-2]['created_at']
-            health = 100 - time_passed.seconds * self.priority
-            print(time_passed.seconds)
+            health = time_passed.seconds < 10
             return {'health': health}
         else:
             return {'health': False, 'message': 'no status recieved'}

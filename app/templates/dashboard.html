@@ -14,73 +14,111 @@
       .hidden{
         display: none;
       }
+
+      .healthy{
+        color: green;
+      }
+
+      .unhealthy{
+        color: red;
+      }
+
     </style>
   </head>
   <body>
     <div class='container'>
       <div class='row'>
-        <div class='col s6'>
+        <div class='col s12'>
           <div class='card'>
-            <div class='card-content'>
-              <div class='card-title'>Beats</div>
-              <label for="app-id-input">Id to track</label>
-              <input id='app-id-input' type='text'/>
+            <div class='card-title center'>
+              Health monitor
             </div>
           </div>
         </div>
-        <div class='col s6'>
-          <div id='widget-area' class='row'>
-            {% for monitor in monitors %}
-              <div id='widget-{{monitor["id"]}}' class='col s4 widget' data-url='/app/{{monitor["id"]}}'>
-                <div class='card'>
-                  <div class='card-content'>
-                    <i class='material-icons' style='color:green;'>mood</i>
-                    <div class='health'>100</div>
-                  </div>
-                </div>
-              </div>
-            {% endfor %}
-          </div>
-        </div>
       </div>
-    </div>url
+      <div id='widget-area' class='row'>
+
+      </div>
+    </div>
+
+    <script>
+      function Widget(id, name){
+        this.id = id;
+        this.name = name;
+        this.health = false;
+
+        this.poll = function(){
+          var url = '/app/' + this.id
+          $.get(url, function(data){
+            dashboard.updateWidget(data)
+          })
+        }
+
+        this.update = function(health){
+          this.health = health
+          html = this.html()
+          tile = document.getElementById('widget-' + this.id)
+          if(tile != null){
+            $(tile).replaceWith(html)
+          }else{
+            holder = document.getElementById('widget-area')
+            holder.innerHTML += html
+          }
+        };
+
+        this.html = function(){
+          if(this.health){
+            var colorClass = 'healthy'
+          }else{
+            var colorClass = 'unhealthy'
+          }
+
+          var icon = '<i class="material-icons '+ colorClass +'">mood</i>'
+          var name = '<div>'+this.name+'</div>'
+          var cardContent = '<div class="card-content">'+icon+name+'</div>'
+          var card = '<div class="card">'+cardContent+'</div>'
+          var holder = '<div id="widget-'+this.id+'" class="col s4 widget">'+card+'</div>'
+
+          return holder
+        }
+      }
+
+      function Dashboard(){
+        var widgets = []
+        this.loop = function(){
+          dashboard.discoverWidgets()
+          for(var i = 0; i < widgets.length; i++){
+              widgets[i].poll()
+          }
+          window.setTimeout(dashboard.loop, 4000)
+        }
+        this.createWidget = function(data){
+          if(this.getWidget(data.id) == undefined){
+            widget = new Widget(data.id, data.name)
+            widgets.push(widget)
+          }
+        }
+        this.getWidget = function(id){
+          widget = $.grep(widgets, function(w){
+            return w.id == id
+          })
+          return widget[0]
+        }
+        this.updateWidget = function(data) {
+          widget = this.getWidget(data.id)
+          widget.update(data.status.health)
+        }
+        this.discoverWidgets = function(){
+          $.get('/apps', function(data){
+            for(var i = 0 ; i < data.length ; i++){
+              dashboard.createWidget(data[i])
+            }
+          })
+        }
+        this.discoverWidgets()
+      };
+      var dashboard = new Dashboard();
+      dashboard.loop();
+    </script>
   </body>
-  <script>
-
-  function loop(){
-    var widgets = document.getElementsByClassName('widget')
-    for(var i = 0; i < widgets.length; i++){
-      var url = widgets[i].dataset['url']
-      $.get(url, function( data ){
-        id = '#widget-'+data.id
-        health = data.status.health
-
-        $(id).find('.health').html(health)
-        $(id).find('i').css('color', setColor(health))
-      })
-    }
-    window.setTimeout(function(){
-      window.requestAnimationFrame(loop);
-    },1000)
-  }
-  loop();
-
-  function setColor(health){
-    if(health < 80){
-      return 'red'
-    }else if(health < 90){
-      return 'orange'
-    }else {
-      return 'green'
-    }
-
-  }
-
-
-
-
-
-
-
-  </script>
 </html>
