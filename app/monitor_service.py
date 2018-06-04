@@ -25,9 +25,11 @@ class MonitorService():
         return self.__find(id).to_object()
 
     def remove(self, id):
+        id = int(id)
         self.__monitors.pop(id)
 
     def __find(self, id):
+        id = int(id)
         return self.__monitors[id]
 
     def __next_id(self):
@@ -39,6 +41,9 @@ class Monitor():
         self.id = id
         self.priority = priority
         self.__stati = []
+
+    def id(self):
+        return self.id
 
     def report(self):
         if len(self.__stati) > 1:

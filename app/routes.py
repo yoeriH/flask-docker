@@ -1,10 +1,10 @@
 from app import app, api, monitor_service
-from flask import request
+from flask import request, render_template
 from flask_restplus import Api, Resource, fields
 
 @app.route('/dashboard')
-def index():
-    return 'super slick dashboard'
+def show():
+    return render_template('dashboard.html', monitors=monitor_service.all())
 
 @api.route('/status')
 class Status(Resource):
