@@ -1,8 +1,8 @@
-FROM python:3.6
-RUN apt-get update
-RUN mkdir /app
-WORKDIR /app
+FROM ubuntu:latest
+RUN apt-get update -y
+RUN apt-get install -y python-pip python-dev build-essential
 COPY . /app
-RUN pip install --no-cache-dir -r requirements.txt
+WORKDIR /app
+RUN pip install -r requirements.txt
 ENTRYPOINT ["python"]
 CMD ["app.py"]
