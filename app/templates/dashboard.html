@@ -11,6 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
     <style>
+
       .hidden{
         display: none;
       }
@@ -22,30 +23,53 @@
       .unhealthy{
         color: red;
       }
+      .brand-logo{
+        padding-left: 20px;
+      }
+      nav{
+        background-color: #ff6600;
+      }
+      
+      html{
+        background-color: #f9fcff;
+      }
+
+
+      .block{
+        display: inline-block;
+        width: 4%;
+        height: 5px;
+      }
+
+      .block.healthy{
+        background-color: green;
+      }
+
+      .block.unhealthy{
+        background-color: red;
+      }
 
     </style>
   </head>
   <body>
-    <div class='container'>
-      <div class='row'>
-        <div class='col s12'>
-          <div class='card'>
-            <div class='card-title center'>
-              Health monitor
-            </div>
-          </div>
+    <div class="navbar-fixed">
+      <nav>
+        <div class="nav-wrapper">
+          <a href="#!" class="brand-logo">Health Monitor</a>
         </div>
-      </div>
+      </nav>
+    </div>
+    <div class='container'>
       <div id='widget-area' class='row'>
 
       </div>
     </div>
-
     <script>
       function Widget(id, name){
         this.id = id;
         this.name = name;
         this.health = false;
+        this.statusses = []
 
         this.poll = function(){
           var url = '/app/' + this.id
@@ -55,7 +79,11 @@
         }
 
         this.update = function(health){
-          this.health = health
+          this.statusses.push(health)
+          if(this.statusses.length == 25){
+            this.statusses.shift()
+          }
+          this.health = this.statusses[this.statusses.length -1]
           html = this.html()
           tile = document.getElementById('widget-' + this.id)
           if(tile != null){
@@ -69,14 +97,28 @@
         this.html = function(){
           if(this.health){
             var colorClass = 'healthy'
+            var iconText = 'mood'
           }else{
             var colorClass = 'unhealthy'
+            var iconText = 'mood_bad'
+          }
+          var blocks = ''
+
+          for(var i = 0; i < this.statusses.length; i++){
+            if(this.statusses[i] == true){
+              var blockColorClass = 'healthy'
+            }else{
+              var blockColorClass = 'unhealthy'
+            }
+            blocks += '<div class="block '+blockColorClass+'"></div>'
           }
 
-          var icon = '<i class="material-icons '+ colorClass +'">mood</i>'
+          var icon = '<i class="material-icons '+ colorClass +'">'+iconText+'</i>'
           var name = '<div>'+this.name+'</div>'
-          var cardContent = '<div class="card-content">'+icon+name+'</div>'
-          var card = '<div class="card">'+cardContent+'</div>'
+          var blockHolder = '<div>'+blocks+'</div>'
+          var cardContent = '<div class="card-content">'+icon+name+blockHolder+'</div>'
+          var cardActions = '<div class="card-action"><a href="#">Remove</a></div>'
+          var card = '<div class="card">'+cardContent+cardActions+'</div>'
           var holder = '<div id="widget-'+this.id+'" class="col s4 widget">'+card+'</div>'
 
           return holder
@@ -90,9 +132,10 @@
           for(var i = 0; i < widgets.length; i++){
               widgets[i].poll()
           }
-          window.setTimeout(dashboard.loop, 4000)
+          window.setTimeout(dashboard.loop, 1000)
         }
         this.createWidget = function(data){
+          console.log(widgets.length)
           if(this.getWidget(data.id) == undefined){
             widget = new Widget(data.id, data.name)
             widgets.push(widget)
