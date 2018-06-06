@@ -33,7 +33,11 @@
         background-color: #f9fcff;
       }
 
-
+      .indicator{
+        width: 100%;
+        text-align: center;
+        font-size: 55px;
+      }
       .block{
         display: inline-block;
         width: 4%;
@@ -68,17 +72,21 @@
         this.id = id;
         this.name = name;
         this.health = false;
+        this.lastUpdate = 'no updated'
         this.statusses = []
 
         this.poll = function(){
           var url = '/app/' + this.id
           $.get(url, function(data){
             dashboard.updateWidget(data)
+            console.log(data)
           })
         }
 
-        this.update = function(health){
-          this.statusses.push(health)
+        this.update = function(status){
+          this.statusses.push(status.health)
+          this.lastUpdate = status.last_ping
+
           if(this.statusses.length == 25){
             this.statusses.shift()
           }
@@ -112,12 +120,12 @@
             blocks += '<div class="block '+blockColorClass+'"></div>'
           }
 
-          var icon = '<i class="material-icons '+ colorClass +'">'+iconText+'</i>'
-          var name = '<div>'+this.name+'</div>'
+          var icon = '<i class="material-icons indicator '+ colorClass +'">'+iconText+'</i>'
+          var name = '<div class="card-title">'+this.name+'</div>'
           var blockHolder = '<div>'+blocks+'</div>'
-          var cardContent = '<div class="card-content">'+icon+name+blockHolder+'</div>'
-          var cardActions = '<div class="card-action"><a href="#">Remove</a></div>'
-          var card = '<div class="card">'+cardContent+cardActions+'</div>'
+          var lastUpdate = '<div>Last signal: '+this.lastUpdate+'</div>'
+          var cardContent = '<div class="card-content">'+name+icon+blockHolder+lastUpdate+'</div>'
+          var card = '<div class="card">'+cardContent+'</div>'
           var holder = '<div id="widget-'+this.id+'" class="col s4 widget">'+card+'</div>'
 
           return holder
@@ -148,7 +156,7 @@
         }
         this.updateWidget = function(data) {
           widget = this.getWidget(data.id)
-          widget.update(data.status.health)
+          widget.update(data.status)
         }
         this.discoverWidgets = function(){
           $.get('/apps', function(data){

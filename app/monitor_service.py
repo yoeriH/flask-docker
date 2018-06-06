@@ -49,7 +49,7 @@ class Monitor():
         if len(self.__stati) > 1:
             time_passed = datetime.datetime.now() - self.__stati[-2]['created_at']
             health = time_passed.seconds < 10
-            return {'health': health}
+            return {'health': health, 'last_ping': self.__stati[-1]['created_at'].strftime("%H:%M:%S") }
         else:
             return {'health': False, 'message': 'no status recieved'}
 
