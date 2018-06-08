@@ -79,7 +79,6 @@
           var url = '/app/' + this.id
           $.get(url, function(data){
             dashboard.updateWidget(data)
-            console.log(data)
           })
         }
 
@@ -142,7 +141,6 @@
           window.setTimeout(dashboard.loop, 1000)
         }
         this.createWidget = function(data){
-          console.log(widgets.length)
           if(this.getWidget(data.id) == undefined){
             widget = new Widget(data.id, data.name)
             widgets.push(widget)
